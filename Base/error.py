@@ -29,6 +29,9 @@ class Error:
     ERROR_TUPLE_FORMAT = E("属性元组格式错误")
     ERROR_PROCESS_FUNC = E("参数预处理函数错误")
 
+    ERROR_MUSIC_LINK = E("错误的歌曲分享链接")
+    ERROR_GRAB_MUSIC = E("爬取数据错误")
+
     SHORT_USERNAME = E("用户名太短啦")
     ERROR_CREATE_MUSIC = E("创建歌曲错误")
     NOT_FOUND_MUSIC = E("不存在的歌曲")

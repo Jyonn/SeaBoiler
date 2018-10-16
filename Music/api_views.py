@@ -3,7 +3,7 @@ from django.views import View
 from Base.Netease import NetEase
 from Base.error import Error
 from Base.response import error_response, response
-from Base.validator import require_post
+from Base.validator import require_post, require_get
 from Music.models import Music
 
 
@@ -13,8 +13,8 @@ class MusicView(View):
     @require_post(['url'])
     def post(request):
         url = request.d.url
-
         ret = NetEase.grab_music_info(url)
+
         if ret.error is not Error.OK:
             return error_response(ret)
 
@@ -36,26 +36,25 @@ class MusicView(View):
 
 
 class MusicListView(View):
-    # cls.object.filter
-    pass
+    # /api/music/list
+    @staticmethod
+    @require_get([{
+        'value': 'end',
+        'default': True,
+        'default_value': -1,
+        'process': int,
+    }, {
+        'value': 'count',
+        'default': True,
+        'default_value': 10,
+        'process': int,
+    }])
+    def get(request):
+        end = request.d.end
+        count = request.d.count
 
+        ret = Music.get_music_list(end, count)
+        if ret.error is not Error.OK:
+            return error_response(ret)
 
-# 1
-# 31
-# 61
-# 获取歌曲
-# GET /api/music/?count=10&start=-1 /// 61- 52, 51-42
-# a = \
-# {
-#     'song_list': [
-#         {
-#             'name': '修炼爱情',
-#
-#         },
-#         {}
-#     ],
-#     'next_id': 41,
-# }
-#
-#
-#
+        return response(body=ret.body)

@@ -27,6 +27,11 @@ def response(e=Error.OK, msg=Error.OK.msg, body=None):
     """
     回复HTTP请求
     """
+    if not isinstance(e, E):
+        body = e
+        e = Error.OK
+        msg = Error.OK.msg
+
     resp = {
         "code": e.eid,
         "msg": msg,

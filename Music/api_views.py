@@ -32,7 +32,7 @@ class MusicView(View):
         if not isinstance(o_music, Music):
             return error_response(Error.STRANGE)
 
-        return response(body=o_music.to_dict())
+        return response(o_music.to_dict())
 
 
 class MusicListView(View):
@@ -57,4 +57,4 @@ class MusicListView(View):
         if ret.error is not Error.OK:
             return error_response(ret)
 
-        return response(body=ret.body)
+        return response(ret.body)

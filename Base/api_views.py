@@ -7,5 +7,5 @@ from Base.response import response
 class ErrorView(View):
     @staticmethod
     def get(request):
-        return response(body=Error.get_error_dict())
+        return response(Error.get_error_dict())
 

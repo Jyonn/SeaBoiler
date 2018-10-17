@@ -9,7 +9,7 @@ import jwt
 from Base.common import deprint
 from Base.error import Error
 from Base.response import Ret
-from account.settings import SECRET_KEY, JWT_ENCODE_ALGO
+from SeaBoiler.settings import SECRET_KEY, JWT_ENCODE_ALGO
 
 
 class JWType:

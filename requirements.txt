@@ -1,3 +1,4 @@
+pycrypto
 beautifulsoup4
 django
 requests

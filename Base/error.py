@@ -38,6 +38,7 @@ class Error:
     JWT_PARAM_INCOMPLETE = E("身份认证缺少参数，请登录")
 
     NOT_FOUND_CONFIG = E("不存在的配置")
+    ERROR_CREATE_CONFIG = E("更新配置错误")
 
     ERROR_MUSIC_LINK = E("错误的歌曲分享链接")
     ERROR_GRAB_MUSIC = E("爬取数据错误")
@@ -57,6 +58,9 @@ class Error:
     ERROR_APP_ID = E("不匹配的小程序ID")
 
     COMMENT_TOO_MUCH = E("只能推荐评论数小于999的小众歌曲")
+
+    NOT_FOUND_DAILYRECOMMEND = E("不存在的当日推荐")
+    ERROR_CREATE_DAILYRECOMMEND = E("创建每日推荐错误")
 
     @classmethod
     def get_error_dict(cls):

@@ -6,6 +6,7 @@ from Base.common import deprint
 from Base.error import Error
 from Base.response import Ret
 from Base.validator import field_validator
+from Config.models import Config
 
 
 class Music(models.Model):
@@ -51,8 +52,10 @@ class Music(models.Model):
 
     re_user = models.ForeignKey(
         'User.User',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         default=None,
+        null=True,
+        blank=True,
         related_name='recommend_user',
     )
 
@@ -134,6 +137,8 @@ class Music(models.Model):
         self.status = self.STATUS_ACCEPTED if status else self.STATUS_REFUSED
         self.consider_user = consider_user
         self.save()
+        if self.status == self.STATUS_ACCEPTED:
+            DailyRecommend.push(self)
         return Ret()
 
     @classmethod
@@ -209,5 +214,49 @@ class Music(models.Model):
             updated_total_comment=self.updated_total_comment,
             last_update_time=self.last_update_time,
             status=self.status,
-            owner=self.re_user.to_dict(),
+            owner=self.re_user.to_dict() if self.re_user else None
         )
+
+
+class DailyRecommend(models.Model):
+    dat_e = models.DateField(
+        default=None,
+        unique=True,
+    )
+
+    re_music = models.ForeignKey(
+        Music,
+        on_delete=models.SET_DEFAULT,
+        default=None,
+    )
+
+    @classmethod
+    def get_dr_by_date(cls, date_):
+        try:
+            o_dr = cls.objects.get(dat_e=date_)
+        except cls.DoesNotExist as err:
+            deprint(str(err))
+            return Ret(Error.NOT_FOUND_DAILYRECOMMEND)
+        return Ret(o_dr)
+
+    @classmethod
+    def push(cls, o_music):
+        pushing_date_str = Config.get_value_by_key('next-recommend-date', '2018-10-17').body
+        pushing_date = datetime.datetime.strptime(pushing_date_str, '%Y-%m-%d')
+
+        try:
+            o_dr = cls(
+                dat_e=pushing_date,
+                re_music=o_music,
+            )
+            o_dr.save()
+        except Exception as err:
+            deprint(str(err))
+            return Ret(Error.ERROR_CREATE_DAILYRECOMMEND)
+
+        next_date = pushing_date + datetime.timedelta(days=1)
+        next_date_str = next_date.strftime('%Y-%m-%d')
+
+        Config.update_value('next-recommend-date', next_date_str)
+
+        return Ret(o_dr)

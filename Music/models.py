@@ -124,6 +124,31 @@ class Music(models.Model):
             return Ret(Error.NOT_FOUND_MUSIC)
         return Ret(o_music)
 
+    @classmethod
+    def get_consider_list(cls, start, count=10):
+        if count > 10 or count <= 0:
+            count = 10
+
+        considers = cls.objects.filter(status=cls.STATUS_CONSIDER, pk__gt=start)
+        total = considers.count()
+
+        is_over = total <= count
+        if total < count:
+            count = total
+        considers = considers[:count]
+
+        consider_list = []
+        for o_music in considers:
+            consider_list.append(o_music.to_dict())
+
+        next_start = start if total == 0 else consider_list[-1]['id']
+
+        return dict(
+            consider_list=consider_list,
+            is_over=is_over,
+            next_start=next_start
+        )
+
     # @classmethod
     # def get_music_list(cls, end, count=10):
     #     if count > 10 or count <= 0:

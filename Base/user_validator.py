@@ -54,5 +54,22 @@ def maybe_login_func(request):
     return Ret()
 
 
+def require_consider_func(request):
+    ret = require_login_func(request)
+    if ret.error is not Error.OK:
+        return ret
+    o_user = request.user
+
+    from User.models import User
+    if not isinstance(o_user, User):
+        return Ret(Error.STRANGE)
+    if not o_user.reviewer:
+        return Ret(Error.REQUIRE_REVIEWER)
+
+    return Ret()
+
+
 require_login = decorator_generator(require_login_func)
 maybe_login = decorator_generator(maybe_login_func)
+require_consider = decorator_generator(require_consider_func)
+

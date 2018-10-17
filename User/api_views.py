@@ -16,8 +16,8 @@ def get_token_info(o_user, session_key):
     if ret.error is not Error.OK:
         return ret
     token, dict_ = ret.body
-    # dict_['token'] = token
-    return token
+    dict_['token'] = token
+    return dict_
 
 
 class CodeView(View):

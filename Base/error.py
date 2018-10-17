@@ -25,7 +25,7 @@ class Error:
     ERROR_PARAM_FORMAT = E("错误的参数格式")
     ERROR_METHOD = E("错误的HTTP请求方法")
     ERROR_VALIDATION_FUNC = E("错误的参数验证函数")
-    REQUIRE_ROOT = E("需要管理员登录")
+    REQUIRE_REVIEWER = E("需要审核员权限")
     ERROR_TUPLE_FORMAT = E("属性元组格式错误")
     ERROR_PROCESS_FUNC = E("参数预处理函数错误")
 

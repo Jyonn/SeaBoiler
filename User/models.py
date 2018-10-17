@@ -39,6 +39,10 @@ class User(models.Model):
         unique=True,
     )
 
+    reviewer = models.BooleanField(
+        default=False,
+    )
+
     FIELD_LIST = ['openid', 'avatar', 'nickname']
 
     @classmethod
@@ -69,6 +73,7 @@ class User(models.Model):
             o_user = cls(
                 openid=openid,
                 str_id=cls.get_unique_str_id(),
+                reviewer=False,
             )
             o_user.save()
         except Exception as err:
@@ -109,4 +114,5 @@ class User(models.Model):
             str_id=self.str_id,
             nickname=self.nickname,
             avatar=self.avatar,
+            is_reviewer=1 if self.reviewer else 0,
         )

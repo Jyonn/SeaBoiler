@@ -5,7 +5,7 @@ from django.views import View
 from Base.Netease import NetEase
 from Base.error import Error
 from Base.response import error_response, response
-from Base.user_validator import require_login
+from Base.user_validator import require_login, require_consider
 from Base.validator import require_post, require_get, require_put
 from Music.models import Music
 
@@ -111,3 +111,19 @@ class MusicView(View):
 #             return error_response(ret)
 #
 #         return response(ret.body)
+
+class ConsiderView(View):
+    @staticmethod
+    @require_get([{
+        'value': 'start',
+        'process': int,
+    }, {
+        'value': 'count',
+        'process': int,
+    }])
+    @require_consider
+    def get(request):
+        start = request.d.start
+        count = request.d.count
+
+        return response(Music.get_consider_list(start, count))

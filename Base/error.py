@@ -28,6 +28,7 @@ class Error:
     REQUIRE_REVIEWER = E("需要审核员权限")
     ERROR_TUPLE_FORMAT = E("属性元组格式错误")
     ERROR_PROCESS_FUNC = E("参数预处理函数错误")
+    ERROR_PATH = E("错误的API路径或请求方法")
 
     AES_ENCRYPT_ERROR = E("AES加密失败")
     AES_DECRYPT_ERROR = E("AES解密失败")
@@ -43,6 +44,7 @@ class Error:
 
     ERROR_CREATE_MUSIC = E("创建歌曲错误")
     NOT_FOUND_MUSIC = E("不存在的歌曲")
+    ALREADY_CONSIDERED = E("此歌曲已被审核")
 
     ERROR_CREATE_USER = E("创建用户错误")
     NOT_FOUND_USER = E("不存在的用户")

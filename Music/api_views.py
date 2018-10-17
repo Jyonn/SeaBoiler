@@ -6,7 +6,7 @@ from Base.Netease import NetEase
 from Base.error import Error
 from Base.response import error_response, response
 from Base.user_validator import require_login, require_consider
-from Base.validator import require_post, require_get, require_put
+from Base.validator import require_post, require_get, require_put, require_path
 from Music.models import Music
 
 
@@ -14,6 +14,7 @@ class MusicView(View):
     @staticmethod
     @require_get([('user_id', None, None)])
     @require_login
+    @require_path('/api/music/list')
     def get(request):
         """ GET /api/music/list?user_id
 
@@ -37,6 +38,7 @@ class MusicView(View):
     @staticmethod
     @require_post(['url'])
     @require_login
+    @require_path('/api/music/recommend')
     def post(request):
         """ POST /api/music/recommend
 
@@ -71,7 +73,7 @@ class MusicView(View):
         return response(o_music.to_dict())
 
     @staticmethod
-    @require_put()
+    @require_path('/api/music/update')
     def put(request):
         """ GET /api/music/update
 
@@ -84,7 +86,7 @@ class MusicView(View):
             ret = NetEase.get_comment(o_music.netease_id)
             if ret.error is Error.OK:
                 total_comment = ret.body
-                o_music.update(total_comment)
+                o_music.update_comment(total_comment)
         return response()
 
 
@@ -127,3 +129,25 @@ class ConsiderView(View):
         count = request.d.count
 
         return response(Music.get_consider_list(start, count))
+
+    @staticmethod
+    @require_put(['netease_id', {
+        'value': 'accept',
+        'process': bool,
+    }])
+    @require_consider
+    def put(request):
+        netease_id = request.d.netease_id
+        accept = request.d.accept
+
+        ret = Music.get_music_by_netease_id(netease_id)
+        if ret.error is not Error.OK:
+            return error_response(ret)
+        o_music = ret.body
+        if not isinstance(o_music, Music):
+            return error_response(Error.STRANGE)
+
+        o_user = request.user
+        ret = o_music.update_status(accept, o_user)
+
+        return error_response(ret)

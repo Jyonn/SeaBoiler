@@ -58,6 +58,9 @@ class UserView(View):
         data = ret.body
 
         o_user = request.user
+        if not isinstance(o_user, User):
+            return error_response(Error.STRANGE)
+
         avatar = data['avatarUrl']
         nickname = data['nickName']
         ret = o_user.update(avatar, nickname)

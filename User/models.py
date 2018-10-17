@@ -48,7 +48,7 @@ class User(models.Model):
     @classmethod
     def get_unique_str_id(cls):
         while True:
-            str_id = get_random_string(length=cls.L['res_str_id'])
+            str_id = get_random_string(length=cls.L['str_id'])
             ret = cls.get_user_by_str_id(str_id)
             if ret.error == Error.NOT_FOUND_USER:
                 return str_id

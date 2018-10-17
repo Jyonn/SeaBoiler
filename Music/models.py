@@ -53,6 +53,7 @@ class Music(models.Model):
         'User.User',
         on_delete=models.CASCADE,
         default=None,
+        related_name='recommend_user',
     )
 
     create_time = models.FloatField(
@@ -71,7 +72,19 @@ class Music(models.Model):
         default=0,
     )
 
-    FIELD_LIST = ['name', 'singer', 'cover', 'total_comment', 'netease_id', 'create_time', 'status']
+    consider_user = models.ForeignKey(
+        'User.User',
+        on_delete=models.SET_DEFAULT,
+        default=None,
+        null=True,
+        blank=True,
+        related_name='consider_user',
+    )
+
+    FIELD_LIST = [
+        'name', 'singer', 'cover', 'total_comment', 'netease_id', 'create_time',
+        'status', 'last_update_time', 'updated_total_comment',
+    ]
 
     @classmethod
     def _validate(cls, dict_):
@@ -109,11 +122,19 @@ class Music(models.Model):
 
         return Ret(o_music)
 
-    def update(self, total_comment):
+    def update_comment(self, total_comment):
         crt_time = datetime.datetime.now().timestamp()
         self.updated_total_comment = total_comment
         self.last_update_time = crt_time
         self.save()
+
+    def update_status(self, status, consider_user):
+        if self.status != self.STATUS_CONSIDER:
+            return Ret(Error.ALREADY_CONSIDERED)
+        self.status = self.STATUS_ACCEPTED if status else self.STATUS_REFUSED
+        self.consider_user = consider_user
+        self.save()
+        return Ret()
 
     @classmethod
     def get_music_by_netease_id(cls, netease_id):

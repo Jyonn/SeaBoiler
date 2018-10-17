@@ -238,3 +238,20 @@ def decorator_generator(verify_func):
             return func(request, *args, **kwargs)
         return wrapper
     return decorator
+
+
+def require_path(path):
+    """generate decorator, validate func with proper method and params"""
+    def decorator(func):
+        """decorator"""
+        @wraps(func)
+        def wrapper(request, *args, **kwargs):
+            """wrapper"""
+            if not isinstance(request, HttpRequest):
+                return error_response(Error.STRANGE)
+            if request.path != path:
+                return error_response(Error.ERROR_PATH)
+            return func(request, *args, **kwargs)
+
+        return wrapper
+    return decorator

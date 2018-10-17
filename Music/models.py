@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 from Base.common import deprint
@@ -12,6 +14,15 @@ class Music(models.Model):
         'singer': 100,
         'cover': 1024,
     }
+
+    STATUS_CONSIDER = 0
+    STATUS_ACCEPTED = 1
+    STATUS_REFUSED = 2
+    STATUS_TABLE = (
+        (STATUS_CONSIDER, 'under consider'),
+        (STATUS_ACCEPTED, 'accepted'),
+        (STATUS_REFUSED, 'refused'),
+    )
 
     name = models.CharField(
         verbose_name='歌曲名',
@@ -38,14 +49,36 @@ class Music(models.Model):
         default=0,
     )
 
-    FIELD_LIST = ['name', 'singer', 'cover', 'total_comment', 'netease_id']
+    re_user = models.ForeignKey(
+        'User.User',
+        on_delete=models.CASCADE,
+        default=None,
+    )
+
+    create_time = models.FloatField(
+        default=0,
+    )
+
+    status = models.IntegerField(
+        choices=STATUS_TABLE,
+        default=STATUS_CONSIDER,
+    )
+
+    last_update_time = models.FloatField(
+        default=0,
+    )
+    updated_total_comment = models.IntegerField(
+        default=0,
+    )
+
+    FIELD_LIST = ['name', 'singer', 'cover', 'total_comment', 'netease_id', 'create_time', 'status']
 
     @classmethod
     def _validate(cls, dict_):
         return field_validator(dict_, cls)
 
     @classmethod
-    def create(cls, name, singer, cover, total_comment, netease_id):
+    def create(cls, name, singer, cover, total_comment, netease_id, o_user):
         ret = cls._validate(locals())
         if ret.error is not Error.OK:
             return ret
@@ -54,6 +87,8 @@ class Music(models.Model):
         if ret.error is Error.OK:
             return ret
 
+        crt_time = datetime.datetime.now().timestamp()
+
         try:
             o_music = cls(
                 name=name,
@@ -61,6 +96,11 @@ class Music(models.Model):
                 cover=cover,
                 total_comment=total_comment,
                 netease_id=netease_id,
+                re_user=o_user,
+                create_time=crt_time,
+                status=cls.STATUS_CONSIDER,
+                last_update_time=crt_time,
+                updated_total_comment=total_comment,
             )
             o_music.save()
         except Exception as err:
@@ -109,4 +149,5 @@ class Music(models.Model):
             cover=self.cover,
             total_comment=self.total_comment,
             netease_id=self.netease_id,
+
         )

@@ -20,9 +20,9 @@ def require_login_func(request):
         return ret
     dict_ = ret.body
 
-    openid = dict_.get("openid")
-    if not openid:
-        deprint('Base-validator-require_login_func-dict.get(openid)')
+    user_id = dict_.get("user_id")
+    if not user_id:
+        deprint('Base-validator-require_login_func-dict.get(user_id)')
         return Ret(Error.STRANGE)
 
     session_key = dict_.get("session_key")
@@ -35,7 +35,7 @@ def require_login_func(request):
     session_key = ret.body
 
     from User.models import User
-    ret = User.get_user_by_openid(openid)
+    ret = User.get_user_by_str_id(user_id)
     if ret.error is not Error.OK:
         return ret
     o_user = ret.body

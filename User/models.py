@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.crypto import get_random_string
 
 from Base.common import deprint
 from Base.error import Error
@@ -11,6 +12,7 @@ class User(models.Model):
         'openid': 64,
         'avatar': 512,
         'nickname': 64,
+        'str_id': 6,
     }
 
     openid = models.CharField(
@@ -31,7 +33,22 @@ class User(models.Model):
         blank=True,
     )
 
+    str_id = models.CharField(
+        max_length=L['str_id'],
+        default=None,
+        unique=True,
+    )
+
     FIELD_LIST = ['openid', 'avatar', 'nickname']
+
+    @classmethod
+    def get_unique_str_id(cls):
+        while True:
+            str_id = get_random_string(length=cls.L['res_str_id'])
+            ret = cls.get_user_by_str_id(str_id)
+            if ret.error == Error.NOT_FOUND_USER:
+                return str_id
+            deprint('generate res_str_id: %s, conflict.' % str_id)
 
     @classmethod
     def _validate(cls, dict_):
@@ -51,6 +68,7 @@ class User(models.Model):
         try:
             o_user = cls(
                 openid=openid,
+                str_id=cls.get_unique_str_id(),
             )
             o_user.save()
         except Exception as err:
@@ -68,6 +86,15 @@ class User(models.Model):
             return Ret(Error.NOT_FOUND_USER)
         return Ret(o_user)
 
+    @classmethod
+    def get_user_by_str_id(cls, str_id):
+        try:
+            o_user = cls.objects.get(str_id=str_id)
+        except cls.DoesNotExist as err:
+            deprint(str(err))
+            return Ret(Error.NOT_FOUND_USER)
+        return Ret(o_user)
+
     def update(self, avatar, nickname):
         ret = self._validate(locals())
         if ret.error is not Error.OK:
@@ -79,7 +106,7 @@ class User(models.Model):
 
     def to_dict(self):
         return dict(
-            # openid=self.openid,
+            str_id=self.str_id,
             nickname=self.nickname,
             avatar=self.avatar,
         )

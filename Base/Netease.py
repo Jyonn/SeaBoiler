@@ -1,6 +1,7 @@
 import json
 import re
 
+from Base.common import deprint
 from Base.error import Error
 from Base.response import Ret
 
@@ -48,12 +49,25 @@ def abstract_grab(url, phone_agent=False):
 
 
 class NetEase:
+    INFO_URL = 'https://music.163.com/song?id=%s'
     LYRIC_URL = 'https://music.163.com/api/song/media?id=%s'
     MUSIC_URL = 'http://music.163.com/song/media/outer/url?id=%s.mp3'
     COMMENT_URL = 'https://music.163.com/api/v1/resource/comments/R_SO_4_%s'
 
-    @staticmethod
-    def grab_music_info(url):
+    @classmethod
+    def get_comment(cls, netease_id):
+        comment_url = cls.COMMENT_URL % netease_id
+
+        try:
+            data = abstract_grab(comment_url)
+            total_comment = json.loads(data)['total']
+        except Exception as err:
+            deprint(str(err))
+            return Ret(Error.ERROR_GRAB_MUSIC, append_msg='，评论获取错误')
+        return Ret(total_comment)
+
+    @classmethod
+    def grab_music_info(cls, url):
         if url.find('song/') == -1:
             return Ret(Error.ERROR_MUSIC_LINK, append_msg='，歌曲ID定位错误')
         sub_url = url[url.find('song/')+4:]
@@ -68,10 +82,11 @@ class NetEase:
         if not netease_id:
             return Ret(Error.ERROR_MUSIC_LINK, append_msg='，歌曲ID获取错误')
 
-        info_url = 'https://music.163.com/song?id=%s' % netease_id
+        info_url = cls.INFO_URL % netease_id
         try:
             html = abstract_grab(info_url)
         except Exception as err:
+            deprint(str(err))
             return Ret(Error.ERROR_GRAB_MUSIC, append_msg='，无法访问')
 
         try:
@@ -80,21 +95,20 @@ class NetEase:
             singer = info.get('data-res-author')
             name = info.get('data-res-name')
         except Exception as err:
+            deprint(str(err))
             return Ret(Error.ERROR_GRAB_MUSIC, append_msg='，字段获取错误')
 
         try:
             cover_regex = '"images": \["(.*?)"'
             cover = re.search(cover_regex, html, flags=re.S).group(1)
         except Exception as err:
+            deprint(str(err))
             return Ret(Error.ERROR_GRAB_MUSIC, append_msg='，字段获取错误')
 
-        comment_url = NetEase.COMMENT_URL % netease_id
-
-        try:
-            data = abstract_grab(comment_url)
-            total_comment = json.loads(data)['total']
-        except Exception as err:
-            return Ret(Error.ERROR_GRAB_MUSIC, append_msg='，评论获取错误')
+        ret = cls.get_comment(netease_id)
+        if ret.error is not Error.OK:
+            return ret
+        total_comment = ret.body
 
         return Ret(dict(
             netease_id=netease_id,

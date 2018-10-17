@@ -12,7 +12,7 @@ from User.models import User
 
 def get_token_info(o_user, session_key):
     encrypt_session_key = aes_encrypt(session_key).body
-    ret = jwt_e(dict(openid=o_user.openid, session_key=encrypt_session_key))
+    ret = jwt_e(dict(user_id=o_user.str_id, session_key=encrypt_session_key))
     if ret.error is not Error.OK:
         return ret
     token, dict_ = ret.body

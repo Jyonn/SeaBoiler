@@ -109,6 +109,12 @@ class Music(models.Model):
 
         return Ret(o_music)
 
+    def update(self, total_comment):
+        crt_time = datetime.datetime.now().timestamp()
+        self.updated_total_comment = total_comment
+        self.last_update_time = crt_time
+        self.save()
+
     @classmethod
     def get_music_by_netease_id(cls, netease_id):
         try:
@@ -118,28 +124,32 @@ class Music(models.Model):
             return Ret(Error.NOT_FOUND_MUSIC)
         return Ret(o_music)
 
+    # @classmethod
+    # def get_music_list(cls, end, count=10):
+    #     if count > 10 or count <= 0:
+    #         count = 10
+    #
+    #     last = cls.objects.count()
+    #
+    #     # start = -1: start = last - 10 or start = 0
+    #     if end > last or end == -1:
+    #         end = last
+    #     if end - count < 0:
+    #         count = end
+    #     start = end - count
+    #
+    #     music_list = []
+    #     for o_music in cls.objects.all()[start:end]:
+    #         music_list.insert(0, o_music.to_dict())
+    #
+    #     return Ret(dict(
+    #         music_list=music_list,
+    #         next_id=start
+    #     ))
+
     @classmethod
-    def get_music_list(cls, end, count=10):
-        if count > 10 or count <= 0:
-            count = 10
-
-        last = cls.objects.count()
-
-        # start = -1: start = last - 10 or start = 0
-        if end > last or end == -1:
-            end = last
-        if end - count < 0:
-            count = end
-        start = end - count
-
-        music_list = []
-        for o_music in cls.objects.all()[start:end]:
-            music_list.insert(0, o_music.to_dict())
-
-        return Ret(dict(
-            music_list=music_list,
-            next_id=start
-        ))
+    def get_list_by_user(cls, user_id):
+        return cls.objects.filter(re_user__str_id=user_id)
 
     def to_dict(self):
         return dict(
@@ -148,6 +158,10 @@ class Music(models.Model):
             singer=self.singer,
             cover=self.cover,
             total_comment=self.total_comment,
+            create_time=self.create_time,
             netease_id=self.netease_id,
-
+            updated_total_comment=self.updated_total_comment,
+            last_update_time=self.last_update_time,
+            status=self.status,
+            owner=self.re_user.to_dict(),
         )

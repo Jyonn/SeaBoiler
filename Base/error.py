@@ -54,6 +54,8 @@ class Error:
     VALIDATE_SIGNATURE_ERROR = E("签名验证失败")
     ERROR_APP_ID = E("不匹配的小程序ID")
 
+    COMMENT_TOO_MUCH = E("只能推荐评论数小于999的小众歌曲")
+
     @classmethod
     def get_error_dict(cls):
         error_dict = dict()

@@ -7,7 +7,8 @@ from Base.error import Error
 from Base.response import error_response, response
 from Base.user_validator import require_login, require_consider
 from Base.validator import require_post, require_get, require_put, require_path
-from Music.models import Music
+from Message.models import Message
+from Music.models import Music, DailyRecommend
 
 
 class MusicView(View):
@@ -131,14 +132,23 @@ class ConsiderView(View):
         return response(Music.get_consider_list(start, count))
 
     @staticmethod
-    @require_put(['netease_id', {
-        'value': 'accept',
-        'process': bool,
-    }])
+    @require_put([
+        'netease_id',
+        {
+            'value': 'accept',
+            'process': bool,
+        },
+        'reason',
+    ])
     @require_consider
     def put(request):
+        """ PUT /api/music/consider
+
+        审核员审核歌曲能否进入日推
+        """
         netease_id = request.d.netease_id
         accept = request.d.accept
+        reason = request.d.reason
 
         ret = Music.get_music_by_netease_id(netease_id)
         if ret.error is not Error.OK:
@@ -149,5 +159,38 @@ class ConsiderView(View):
 
         o_user = request.user
         ret = o_music.update_status(accept, o_user)
+
+        if ret.error is not Error.OK:
+            return error_response(ret)
+
+        if accept:
+            ret = DailyRecommend.push(o_music)
+            if ret.error is not Error.OK:
+                Message.create(
+                    Message.TYPE_TABLE[Message.TYPE_PUSH_DAILY_FAIL][1] % o_music.name,
+                    o_music,
+                    o_user,
+                    Message.TYPE_PUSH_DAILY_FAIL,
+                )
+                return error_response(Error.DAILY_RECOMMEND_FAILED)
+            o_dr = ret.body
+            if not isinstance(o_dr, DailyRecommend):
+                return error_response(Error.STRANGE)
+            Message.create(
+                Message.TYPE_TABLE[Message.TYPE_RECOMMEND_ACCEPT][1] % (
+                    o_music.name,
+                    o_dr.get_readable_date()
+                ),
+                o_music,
+                o_music.re_user,
+                Message.TYPE_RECOMMEND_ACCEPT,
+            )
+        else:
+            Message.create(
+                Message.TYPE_TABLE[Message.TYPE_RECOMMEND_REFUSE][1] % (o_music.name, reason),
+                o_music,
+                o_music.re_user,
+                Message.TYPE_RECOMMEND_REFUSE,
+            )
 
         return error_response(ret)

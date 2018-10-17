@@ -62,6 +62,12 @@ class Error:
     NOT_FOUND_DAILYRECOMMEND = E("不存在的当日推荐")
     ERROR_CREATE_DAILYRECOMMEND = E("创建每日推荐错误")
 
+    ERROR_CREATE_MESSAGE = E("创建消息错误")
+    NOT_FOUND_MESSAGE = E("不存在的消息")
+    MESSAGE_NOT_BELONG = E("消息操作没有权限")
+
+    DAILY_RECOMMEND_FAILED = E("系统错误导致日推失败，请联系管理员")
+
     @classmethod
     def get_error_dict(cls):
         error_dict = dict()

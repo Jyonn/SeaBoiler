@@ -137,8 +137,6 @@ class Music(models.Model):
         self.status = self.STATUS_ACCEPTED if status else self.STATUS_REFUSED
         self.consider_user = consider_user
         self.save()
-        if self.status == self.STATUS_ACCEPTED:
-            DailyRecommend.push(self)
         return Ret()
 
     @classmethod
@@ -260,3 +258,6 @@ class DailyRecommend(models.Model):
         Config.update_value('next-recommend-date', next_date_str)
 
         return Ret(o_dr)
+
+    def get_readable_date(self):
+        return '%s年%s月%s日' % (self.dat_e.year, self.dat_e.month, self.dat_e.day)

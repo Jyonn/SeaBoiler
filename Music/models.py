@@ -173,29 +173,6 @@ class Music(models.Model):
             next_start=next_start
         )
 
-    # @classmethod
-    # def get_music_list(cls, end, count=10):
-    #     if count > 10 or count <= 0:
-    #         count = 10
-    #
-    #     last = cls.objects.count()
-    #
-    #     # start = -1: start = last - 10 or start = 0
-    #     if end > last or end == -1:
-    #         end = last
-    #     if end - count < 0:
-    #         count = end
-    #     start = end - count
-    #
-    #     music_list = []
-    #     for o_music in cls.objects.all()[start:end]:
-    #         music_list.insert(0, o_music.to_dict())
-    #
-    #     return Ret(dict(
-    #         music_list=music_list,
-    #         next_id=start
-    #     ))
-
     @classmethod
     def get_list_by_user(cls, user_id):
         return cls.objects.filter(re_user__str_id=user_id)
@@ -240,7 +217,7 @@ class DailyRecommend(models.Model):
     @classmethod
     def push(cls, o_music):
         pushing_date_str = Config.get_value_by_key('next-recommend-date', '2018-10-17').body
-        pushing_date = datetime.datetime.strptime(pushing_date_str, '%Y-%m-%d')
+        pushing_date = datetime.datetime.strptime(pushing_date_str, '%Y-%m-%d').date()
 
         try:
             o_dr = cls(
@@ -261,3 +238,44 @@ class DailyRecommend(models.Model):
 
     def get_readable_date(self):
         return '%s年%s月%s日' % (self.dat_e.year, self.dat_e.month, self.dat_e.day)
+
+    @classmethod
+    def get_daily_music_list(cls, end_date=None, count=10):
+        if count > 10 or count <= 0:
+            count = 10
+
+        crt_date = datetime.datetime.now().date()
+
+        if end_date:
+            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        if not end_date or end_date > crt_date:
+            end_date = crt_date
+
+        first_date_str = Config.get_value_by_key('first-date', '2018-10-17').body
+        first_date = datetime.datetime.strptime(first_date_str, '%Y-%m-%d').date()
+
+        daily_music_list = []
+        is_over = False
+        for _ in range(count):
+            if end_date < first_date:
+                break
+            ret = cls.get_dr_by_date(end_date)
+            if ret.error is Error.OK:
+                o_dr = ret.body
+                daily_music_list.append(o_dr.to_dict())
+            end_date -= datetime.timedelta(days=1)
+
+        if end_date < first_date:
+            is_over = True
+
+        return Ret(dict(
+            daily_music_list=daily_music_list,
+            next_date=end_date.strftime('%Y-%m-%d'),
+            is_over=is_over,
+        ))
+
+    def to_dict(self):
+        return dict(
+            date=self.dat_e.strftime('%Y-%m-%d'),
+            music=self.re_music.to_dict(),
+        )

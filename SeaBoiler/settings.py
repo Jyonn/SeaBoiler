@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'Music',
     'Config',
     'User',
+    'Message',
 ]
 
 MIDDLEWARE = [

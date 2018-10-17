@@ -4,7 +4,7 @@ from django.views import View
 
 from Base.Netease import NetEase
 from Base.error import Error
-from Base.response import error_response, response
+from Base.response import error_response, response, Ret
 from Base.user_validator import require_login, require_consider
 from Base.validator import require_post, require_get, require_put, require_path
 from Message.models import Message
@@ -138,7 +138,7 @@ class ConsiderView(View):
             'value': 'accept',
             'process': bool,
         },
-        'reason',
+        ('reason', None, ''),
     ])
     @require_consider
     def put(request):
@@ -176,7 +176,7 @@ class ConsiderView(View):
             o_dr = ret.body
             if not isinstance(o_dr, DailyRecommend):
                 return error_response(Error.STRANGE)
-            Message.create(
+            ret = Message.create(
                 Message.TYPE_TABLE[Message.TYPE_RECOMMEND_ACCEPT][1] % (
                     o_music.name,
                     o_dr.get_readable_date()
@@ -185,12 +185,43 @@ class ConsiderView(View):
                 o_music.re_user,
                 Message.TYPE_RECOMMEND_ACCEPT,
             )
+            if ret.error is not Error.OK:
+                print(ret.error.eid, ret.error.msg)
         else:
             Message.create(
-                Message.TYPE_TABLE[Message.TYPE_RECOMMEND_REFUSE][1] % (o_music.name, reason),
+                Message.TYPE_TABLE[Message.TYPE_RECOMMEND_REFUSE][1] % (o_music.name, reason or '空'),
                 o_music,
                 o_music.re_user,
                 Message.TYPE_RECOMMEND_REFUSE,
             )
 
         return error_response(ret)
+
+
+def validate_end_date(end_date):
+    if not end_date:
+        return Ret()
+    try:
+        datetime.datetime.strptime(end_date, '%Y-%m-%d')
+    except:
+        return Ret(Error.END_DATE_FORMAT_ERROR)
+    return Ret()
+
+
+class DailyView(View):
+    @staticmethod
+    @require_get([
+        ('end_date', validate_end_date, None),
+        {
+            'value': 'count',
+            'process': int,
+        }
+    ])
+    def get(request):
+        end_date = request.d.end_date
+        count = request.d.count
+
+        ret = DailyRecommend.get_daily_music_list(end_date, count)
+        if ret.error is not Error.OK:
+            return error_response(ret)
+        return response(ret.body)

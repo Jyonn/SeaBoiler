@@ -63,6 +63,7 @@ class Message(models.Model):
                 mtype=mtype,
                 has_read=False,
             )
+            o_msg.save()
         except Exception as err:
             deprint(str(err))
             return Ret(Error.ERROR_CREATE_MESSAGE)

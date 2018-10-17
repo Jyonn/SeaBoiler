@@ -67,6 +67,7 @@ class Error:
     MESSAGE_NOT_BELONG = E("消息操作没有权限")
 
     DAILY_RECOMMEND_FAILED = E("系统错误导致日推失败，请联系管理员")
+    END_DATE_FORMAT_ERROR = E("end_date参数格式错误")
 
     @classmethod
     def get_error_dict(cls):

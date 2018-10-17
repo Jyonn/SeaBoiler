@@ -55,7 +55,7 @@ class Config(models.Model):
             if isinstance(default, cls.__ConfigNone):
                 return ret
             else:
-                Ret(default)
+                return Ret(default)
         return Ret(ret.body.value)
 
     @classmethod

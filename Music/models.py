@@ -246,6 +246,8 @@ class DailyRecommend(models.Model):
 
         crt_date = datetime.datetime.now().date()
 
+        print(crt_date, end_date)
+
         if end_date:
             end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
         if not end_date or end_date > crt_date:
